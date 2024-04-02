@@ -5,7 +5,11 @@
 import type { ApplicationLogs } from '../models/ApplicationLogs';
 import type { ApplicationSummary } from '../models/ApplicationSummary';
 import type { ChatItem } from '../models/ChatItem';
+import type { DraftInit } from '../models/DraftInit';
+import type { EmailAssistantState } from '../models/EmailAssistantState';
+import type { Feedbacks } from '../models/Feedbacks';
 import type { Project } from '../models/Project';
+import type { QuestionAnswers } from '../models/QuestionAnswers';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -173,6 +177,133 @@ export class DefaultService {
     return __request(OpenAPI, {
       method: 'POST',
       url: '/api/v0/chatbot/create/{project_id}/{app_id}',
+      path: {
+        project_id: projectId,
+        app_id: appId
+      },
+      errors: {
+        422: `Validation Error`
+      }
+    });
+  }
+  /**
+   * Initialize Draft
+   * @param projectId
+   * @param appId
+   * @param requestBody
+   * @returns EmailAssistantState Successful Response
+   * @throws ApiError
+   */
+  public static initializeDraftApiV0EmailAssistantProjectIdAppIdInitializeDraftPost(
+    projectId: string,
+    appId: string,
+    requestBody: DraftInit
+  ): CancelablePromise<EmailAssistantState> {
+    return __request(OpenAPI, {
+      method: 'POST',
+      url: '/api/v0/email_assistant/{project_id}/{app_id}/initialize_draft',
+      path: {
+        project_id: projectId,
+        app_id: appId
+      },
+      body: requestBody,
+      mediaType: 'application/json',
+      errors: {
+        422: `Validation Error`
+      }
+    });
+  }
+  /**
+   * Answer Questions
+   * @param projectId
+   * @param appId
+   * @param requestBody
+   * @returns EmailAssistantState Successful Response
+   * @throws ApiError
+   */
+  public static answerQuestionsApiV0EmailAssistantProjectIdAppIdAnswerQuestionsPost(
+    projectId: string,
+    appId: string,
+    requestBody: QuestionAnswers
+  ): CancelablePromise<EmailAssistantState> {
+    return __request(OpenAPI, {
+      method: 'POST',
+      url: '/api/v0/email_assistant/{project_id}/{app_id}/answer_questions',
+      path: {
+        project_id: projectId,
+        app_id: appId
+      },
+      body: requestBody,
+      mediaType: 'application/json',
+      errors: {
+        422: `Validation Error`
+      }
+    });
+  }
+  /**
+   * Provide Feedback
+   * @param projectId
+   * @param appId
+   * @param requestBody
+   * @returns EmailAssistantState Successful Response
+   * @throws ApiError
+   */
+  public static provideFeedbackApiV0EmailAssistantProjectIdAppIdProvideFeedbackPost(
+    projectId: string,
+    appId: string,
+    requestBody: Feedbacks
+  ): CancelablePromise<EmailAssistantState> {
+    return __request(OpenAPI, {
+      method: 'POST',
+      url: '/api/v0/email_assistant/{project_id}/{app_id}/provide_feedback',
+      path: {
+        project_id: projectId,
+        app_id: appId
+      },
+      body: requestBody,
+      mediaType: 'application/json',
+      errors: {
+        422: `Validation Error`
+      }
+    });
+  }
+  /**
+   * Get State
+   * @param projectId
+   * @param appId
+   * @returns EmailAssistantState Successful Response
+   * @throws ApiError
+   */
+  public static getStateApiV0EmailAssistantProjectIdAppIdStateGet(
+    projectId: string,
+    appId: string
+  ): CancelablePromise<EmailAssistantState> {
+    return __request(OpenAPI, {
+      method: 'GET',
+      url: '/api/v0/email_assistant/{project_id}/{app_id}/state',
+      path: {
+        project_id: projectId,
+        app_id: appId
+      },
+      errors: {
+        422: `Validation Error`
+      }
+    });
+  }
+  /**
+   * Create New Application
+   * @param projectId
+   * @param appId
+   * @returns string Successful Response
+   * @throws ApiError
+   */
+  public static createNewApplicationApiV0EmailAssistantProjectIdAppIdCreatePost(
+    projectId: string,
+    appId: string
+  ): CancelablePromise<string> {
+    return __request(OpenAPI, {
+      method: 'POST',
+      url: '/api/v0/email_assistant/{project_id}/{app_id}/create',
       path: {
         project_id: projectId,
         app_id: appId
