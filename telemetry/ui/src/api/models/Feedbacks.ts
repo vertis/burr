@@ -3,5 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type Feedbacks = {
-  feedbacks: Array<string>;
+  feedback: string;
 };

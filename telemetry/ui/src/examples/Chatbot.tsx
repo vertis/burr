@@ -257,7 +257,7 @@ export const ChatbotAppSelector = (props: {
   );
   const createAndUpdateMutation = useMutation(
     (app_id: string) =>
-      DefaultService.createNewApplicationApiV0ChatbotProjectIdAppIdCreatePost(projectId, app_id),
+      DefaultService.createNewApplicationApiV0ChatbotCreateProjectIdAppIdPost(projectId, app_id),
 
     {
       onSuccess: (appID) => {

@@ -1,5 +1,3 @@
-import { ComputerDesktopIcon, UserIcon } from '@heroicons/react/24/outline';
-import { classNames } from '../utils/tailwind';
 import { TwoColumnLayout } from '../components/common/layout';
 import { MiniTelemetry } from './MiniTelemetry';
 import {
@@ -21,62 +19,12 @@ import { Button } from '../components/common/button';
 import { DateTimeDisplay } from '../components/common/dates';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 
-type Role = 'assistant' | 'user';
-
-const getCharacter = (role: Role) => {
-  return role === 'assistant' ? 'AI' : 'You';
-};
-
-const RoleIcon = (props: { role: Role }) => {
-  const Icon = props.role === 'assistant' ? ComputerDesktopIcon : UserIcon;
-  return (
-    <Icon className={classNames('text-gray-400', 'ml-auto h-6 w-6 shrink-0')} aria-hidden="true" />
-  );
-};
-
-const LAST_MESSAGE_ID = 'last-message';
-
-const ImageWithBackup = (props: { src: string; alt: string }) => {
-  const [caption, setCaption] = useState<string | undefined>(undefined);
-  return (
-    <div>
-      <img
-        src={props.src}
-        alt={props.alt}
-        onError={(e) => {
-          const img = e.target as HTMLImageElement;
-          img.src = 'https://via.placeholder.com/500x500?text=Image+Unavailable';
-          img.alt =
-            'Image unavailable as OpenAI does not persist images -- generate a new one, or modify the code to save it for you.';
-          setCaption(img.alt);
-        }}
-      />
-      {caption && <span className="italic text-gray-300">{caption}</span>}
-    </div>
-  );
-};
-
-const scrollToLatest = () => {
-  const lastMessage = document.getElementById(LAST_MESSAGE_ID);
-  if (lastMessage) {
-    const scroll = () => {
-      lastMessage.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-    };
-    scroll();
-    const observer = new ResizeObserver(() => {
-      scroll();
-    });
-    observer.observe(lastMessage);
-    setTimeout(() => observer.disconnect(), 1000); // Adjust timeout as needed
-  }
-};
-
 export const CurrentStateView = (props: { state: EmailAssistantState }) => {
   const components = [];
   if (props.state.email_to_respond !== null) {
     components.push(
       <Field>
-        <Label>Input Email</Label>
+        <Label className="underline">Input Email</Label>
         <Text>
           <pre className="whitespace-pre-wrap text-xs">{props.state.email_to_respond}</pre>
         </Text>
@@ -84,21 +32,62 @@ export const CurrentStateView = (props: { state: EmailAssistantState }) => {
     );
     components.push(
       <Field>
-        <Label>Response Instructions</Label>
+        <Label className="underline">Response Instructions</Label>
         <Text>{props.state.response_instructions}</Text>
+      </Field>
+    );
+  }
+  if (props.state.questions?.length && props.state.answers?.length) {
+    components.push(
+      <Field>
+        <Label className="underline">Clarifications</Label>
+        <ul className="list-disc list-inside flex flex-col gap-2">
+          {props.state.questions?.map((question, index) => (
+            <Field key={index} className="flex flex-col gap-2">
+              <Text>{question}</Text>
+              <Text className="font-mono">{props.state.answers?.[index]}</Text>
+            </Field>
+          ))}
+        </ul>
+      </Field>
+    );
+  }
+  if (props.state.drafts?.length) {
+    components.push(
+      <Field>
+        <Label className="underline">Drafts</Label>
+        <ul className="list-disc list-inside flex flex-col gap-2">
+          {props.state.drafts?.map((draft, index) => (
+            <>
+              <h1 className="text-sm font-semibold text-gray-600" key={index}></h1>
+              <Text>
+                <pre className="whitespace-pre-wrap text-xs" key={index}>
+                  {draft}
+                </pre>
+              </Text>
+            </>
+          ))}
+        </ul>
       </Field>
     );
   }
   return <div className="flex flex-col gap-2">{components}</div>;
 };
 
-export const SubmitInitialView = (props: {
+export const InitialDraftView = (props: {
   submitInitial: (initial: DraftInit) => void;
   isLoading: boolean;
+  responseInstructions: string | null;
+  emailToRespond: string | null;
 }) => {
-  const [userProvidedEmailToRespond, setUserProvidedEmailToRespond] = useState<string>('');
-  const [userProvidedResponseInstructions, setUserProvidedResponseInstructions] =
-    useState<string>('');
+  const [userProvidedEmailToRespond, setUserProvidedEmailToRespond] = useState<string>(
+    props.emailToRespond || ''
+  );
+  const [userProvidedResponseInstructions, setUserProvidedResponseInstructions] = useState<string>(
+    props.responseInstructions || ''
+  );
+  const editMode = props.emailToRespond === null || props.isLoading;
+
   return (
     <div className="w-full flex flex-col gap-2">
       <Field>
@@ -109,6 +98,7 @@ export const SubmitInitialView = (props: {
           onChange={(e) => {
             setUserProvidedEmailToRespond(e.target.value);
           }}
+          disabled={!editMode}
         />
       </Field>
       <Field>
@@ -119,19 +109,23 @@ export const SubmitInitialView = (props: {
           onChange={(e) => {
             setUserProvidedResponseInstructions(e.target.value);
           }}
+          disabled={!editMode}
         />
       </Field>
-      <Button
-        color="white"
-        className="cursor-pointer w-full"
-        onClick={() =>
-          props.submitInitial({
-            email_to_respond: userProvidedEmailToRespond,
-            response_instructions: userProvidedResponseInstructions
-          })
-        }>
-        {'Submit'}
-      </Button>
+      {editMode && (
+        <Button
+          color="white"
+          className="cursor-pointer w-full"
+          onClick={() =>
+            props.submitInitial({
+              email_to_respond: userProvidedEmailToRespond,
+              response_instructions: userProvidedResponseInstructions
+            })
+          }
+        >
+          {'Submit'}
+        </Button>
+      )}
     </div>
   );
 };
@@ -139,18 +133,22 @@ export const SubmitInitialView = (props: {
 export const SubmitAnswersView = (props: {
   state: EmailAssistantState;
   submitAnswers: (questions: QuestionAnswers) => void;
+  questions: string[] | null;
+  answers: string[] | null;
+  isLoading: boolean;
 }) => {
   const questions = props.state.questions || [];
-  const [answers, setAnswers] = useState<string[]>(questions.map(() => ''));
+  const [answers, setAnswers] = useState<string[]>(props.answers || questions.map(() => ''));
+  const editMode = props.isLoading || props.answers === null;
   return (
     <div className="w-full flex flex-col gap-2">
-      <h2 className="text-lg font-bold text-gray-600">Clarifications</h2>
       <div className="flex flex-col gap-2">
         {(props.state.questions || []).map((question, index) => {
           return (
             <Field key={index}>
               <Label>{question}</Label>
               <Input
+                disabled={!editMode}
                 value={answers[index]}
                 onChange={(e) => {
                   const newAnswers = [...answers];
@@ -162,12 +160,15 @@ export const SubmitAnswersView = (props: {
           );
         })}
       </div>
-      <Button
-        color="white"
-        className="cursor-pointer w-full"
-        onClick={() => props.submitAnswers({ answers: answers })}>
-        {'Submit'}
-      </Button>
+      {editMode && (
+        <Button
+          color="white"
+          className="cursor-pointer w-full"
+          onClick={() => props.submitAnswers({ answers: answers })}
+        >
+          {'Submit'}
+        </Button>
+      )}
     </div>
   );
 };
@@ -175,17 +176,71 @@ export const SubmitAnswersView = (props: {
 export const SubmitFeedbackView = (props: {
   state: EmailAssistantState;
   submitFeedback: (feedbacks: Feedbacks) => void;
+  drafts: string[] | null;
+  feedbacks: string[] | null;
+  isLoading: boolean;
 }) => {
-  return <></>;
+  const editMode = props.feedbacks === null || props.feedbacks.length !== props.drafts?.length; // if its not equal we are one step behind
+  const [feedback, setFeedback] = useState<string>(props.feedbacks?.[-1] || '');
+  return (
+    <div className="w-full flex flex-col gap-2">
+      <Field>
+        <Label className="text-lg font-bold text-gray-600">Drafts</Label>
+      </Field>
+      <div className="flex flex-col gap-2">
+        {(props.drafts || []).map((draft, index) => {
+          const providedFeedback = props.feedbacks?.[index];
+          return (
+            <>
+              <Text>
+                <pre className="whitespace-pre-wrap text-xs" key={index}>
+                  {draft}
+                </pre>
+              </Text>
+              <h3 className="text-sm font-semibold text-gray-600"></h3>
+              {editMode && providedFeedback === undefined && (
+                <Input
+                  disabled={
+                    !editMode || props.isLoading || index !== (props.drafts || []).length - 1
+                  }
+                  placeholder="Provide feedback here..."
+                  value={providedFeedback || feedback}
+                  onChange={(e) => {
+                    setFeedback(e.target.value);
+                  }}
+                />
+              )}
+            </>
+          );
+        })}
+        {editMode && (
+          <div className="flex flex-row gap-1">
+            <Button
+              color="white"
+              className="cursor-pointer w-full"
+              disabled={props.isLoading}
+              onClick={() => props.submitFeedback({ feedback: feedback })}
+            >
+              {'Submit Feedback'}
+            </Button>
+            <Button
+              color="white"
+              className="cursor-pointer w-full"
+              disabled={props.isLoading}
+              onClick={() => props.submitFeedback({ feedback: '' })}
+            >
+              {'Looks good!'}
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export const EmailAssistant = (props: { projectId: string; appId: string | undefined }) => {
   // starts off as null
   const [emailAssistantState, setEmailAssistantState] = useState<EmailAssistantState | null>(null);
-  console.log(emailAssistantState);
-  const [userProvidedEmailToRespond, setUserProvidedEmailToRespond] = useState<string>('');
-  const [userProvidedResponseInstructions, setUserProvidedResponseInstructions] =
-    useState<string>('');
 
   useEffect(() => {
     if (props.appId !== undefined) {
@@ -195,7 +250,8 @@ export const EmailAssistant = (props: { projectId: string; appId: string | undef
           setEmailAssistantState(data); // we want to initialize the chat history
         })
         .catch((e) => {
-          console.error(e);
+          // eslint-disable-next-line
+          console.error(e); // TODO -- handle errors
         });
     }
   }, [props.appId, props.projectId]); // This will only get called when the appID or projectID changes, which will be at the beginning
@@ -258,25 +314,6 @@ export const EmailAssistant = (props: { projectId: string; appId: string | undef
     }
   );
 
-  //   // Scroll to the latest message when the chat history changes
-  //   useEffect(() => {
-  //     scrollToLatest();
-  //   }, [emailAssistantState]);
-
-  //   const mutation = useMutation(
-  //     (message: string) => {
-  //       return DefaultService.chatResponseApiV0ChatbotProjectIdAppIdResponsePost(
-  //         props.projectId,
-  //         props.appId || '',
-  //         message
-  //       );
-  //     },
-  //     {
-  //       onSuccess: (data) => {
-  //         setDisplayedChatHistory(data);
-  //       }
-  //     }
-  //   );
   const isLoading = isGetInitialStateLoading;
   const anyMutationLoading =
     submitInitialMutation.isLoading ||
@@ -286,6 +323,13 @@ export const EmailAssistant = (props: { projectId: string; appId: string | undef
   if (isLoading) {
     return <Loading />;
   }
+  const displayInstructions = emailAssistantState === null;
+  const displayInitialDraft = emailAssistantState !== null;
+  const displaySubmitAnswers =
+    displayInitialDraft && emailAssistantState.next_step !== 'process_input';
+  const displaySubmitFeedback =
+    displaySubmitAnswers && emailAssistantState.next_step !== 'clarify_instructions';
+  const displayFinalDraft = displaySubmitFeedback && emailAssistantState.next_step === null;
   return (
     <div className="px-4 bg-white  w-full flex flex-col  h-full gap-5 overflow-y-scroll">
       <h1 className="text-2xl font-bold  text-gray-600">{'Learn Burr '}</h1>
@@ -295,38 +339,54 @@ export const EmailAssistant = (props: { projectId: string; appId: string | undef
         adjust for your feedback.
       </h2>
       <div className="flex flex-col">
-        {emailAssistantState === null ? (
+        {displayInstructions && (
           <p className="text-lg font-normal text-gray-500">
-            Please click "create new" on the right to get started!
-          </p> // TODO -- figure out what goes here?
-        ) : emailAssistantState.next_step === 'process_input' ? (
-          <SubmitInitialView
-            submitInitial={(draft) => submitInitialMutation.mutate(draft)}
+            Please click <pre>create</pre> new on the right to get started!
+          </p>
+        )}
+        {displayInitialDraft && (
+          <InitialDraftView
             isLoading={anyMutationLoading}
-          />
-        ) : emailAssistantState.next_step === 'clarify_instructions' ? (
-          <>
-            <CurrentStateView state={emailAssistantState} />
-            <SubmitAnswersView
-              state={emailAssistantState}
-              submitAnswers={(feedbacks) => submitAnswersMutation.mutate(feedbacks)}
-            />
-          </>
-        ) : emailAssistantState.next_step === 'process_feedback' ? (
-          <>
-            <CurrentStateView state={emailAssistantState} />
-            <SubmitFeedbackView
-              state={emailAssistantState}
-              submitFeedback={(feedbacks) => submitFeedbackMutation.mutate(feedbacks)}
-            />
-          </>
-        ) : (
-          <SubmitFeedbackView
-            state={emailAssistantState}
-            submitFeedback={(feedbacks) => submitFeedbackMutation.mutate(feedbacks)}
+            submitInitial={(initial) => {
+              submitInitialMutation.mutate(initial);
+            }}
+            responseInstructions={emailAssistantState?.response_instructions}
+            emailToRespond={emailAssistantState?.email_to_respond}
           />
         )}
       </div>
+      {displaySubmitAnswers && (
+        <SubmitAnswersView
+          state={emailAssistantState}
+          submitAnswers={(answers) => {
+            submitAnswersMutation.mutate(answers);
+          }}
+          questions={emailAssistantState.questions}
+          answers={emailAssistantState.answers}
+          isLoading={anyMutationLoading}
+        />
+      )}
+      {displaySubmitFeedback && (
+        <SubmitFeedbackView
+          state={emailAssistantState}
+          submitFeedback={(feedbacks) => {
+            submitFeedbackMutation.mutate(feedbacks);
+          }}
+          drafts={emailAssistantState.drafts}
+          feedbacks={emailAssistantState.feedback_history}
+          isLoading={anyMutationLoading}
+        />
+      )}
+      {displayFinalDraft && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-lg font-bold text-gray-600">Final Draft</h2>
+          <Text>
+            <pre className="whitespace-pre-wrap text-xs">
+              {emailAssistantState.drafts?.[emailAssistantState.drafts.length - 1]}
+            </pre>
+          </Text>
+        </div>
+      )}
     </div>
   );
 };
@@ -343,9 +403,8 @@ export const TelemetryWithSelector = (props: {
           projectId={props.projectId}
           setApp={props.setCurrentApp}
           currentApp={props.currentApp}
-          placeholder={
-            'Select a conversation or create a new one by typing...'
-          }></EmailAssistantAppSelector>
+          placeholder={'Select a conversation or create a new one by typing...'}
+        ></EmailAssistantAppSelector>
       </div>
       <MiniTelemetry projectId={props.projectId} appId={props.currentApp?.app_id}></MiniTelemetry>
     </div>
@@ -437,6 +496,7 @@ export const EmailAssistantWithTelemetry = () => {
           setCurrentApp={setCurrentApp}
         />
       }
-      mode={'third'}></TwoColumnLayout>
+      mode={'third'}
+    ></TwoColumnLayout>
   );
 };

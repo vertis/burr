@@ -9,7 +9,7 @@ export type EmailAssistantState = {
   questions: Array<string> | null;
   answers: Array<string> | null;
   drafts: Array<string>;
-  feedbacks: Array<string>;
+  feedback_history: Array<string>;
   final_draft: string | null;
   next_step: EmailAssistantState.next_step;
 };

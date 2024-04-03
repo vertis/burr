@@ -24,7 +24,8 @@ const GithubLogo = () => (
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 22 22"
-    stroke="currentColor">
+    stroke="currentColor"
+  >
     {/* SVG path for GitHub logo */}
     <path
       strokeLinecap="round"
@@ -74,14 +75,10 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
       linkType: 'internal'
     },
     {
-      name: 'Demos',
-      href: '/demos',
-      icon: ListBulletIcon,
-      linkType: 'internal',
-      children: [
-        // { name: 'counter', href: '/demos/counter', current: false, linkType: 'internal' },
-        { name: 'chatbot', href: '/demos/chatbot', current: false, linkType: 'internal' }
-      ]
+      name: 'Examples',
+      href: 'https://github.com/DAGWorks-Inc/burr/tree/main/examples',
+      icon: FolderIcon,
+      linkType: 'external'
     },
     {
       name: 'Demos',
@@ -145,7 +142,8 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
               enterTo="opacity-100"
               leave="transition-opacity ease-linear duration-300"
               leaveFrom="opacity-100"
-              leaveTo="opacity-0">
+              leaveTo="opacity-0"
+            >
               <div className="fixed inset-0 bg-gray-900/80" />
             </Transition.Child>
 
@@ -157,7 +155,8 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
                 enterTo="translate-x-0"
                 leave="transition ease-in-out duration-300 transform"
                 leaveFrom="translate-x-0"
-                leaveTo="-translate-x-full">
+                leaveTo="-translate-x-full"
+              >
                 <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
                   <Transition.Child
                     as={Fragment}
@@ -166,12 +165,14 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
                     enterTo="opacity-100"
                     leave="ease-in-out duration-300"
                     leaveFrom="opacity-100"
-                    leaveTo="opacity-0">
+                    leaveTo="opacity-0"
+                  >
                     <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
                       <button
                         type="button"
                         className="-m-2.5 p-2.5"
-                        onClick={() => setSmallSidebarOpen(false)}>
+                        onClick={() => setSmallSidebarOpen(false)}
+                      >
                         <span className="sr-only">Close sidebar</span>
                         <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
                       </button>
@@ -190,10 +191,6 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
                               <li key={item.name}>
                                 <Link
                                   to={item.href}
-                                  // target={item.linkType === 'external' ? '_blank' : undefined}
-                                  // rel={
-                                  //   item.linkType === 'external' ? 'noopener noreferrer' : undefined
-                                  // }
                                   className={classNames(
                                     isCurrent(item.href, item.linkType)
                                       ? 'bg-gray-50 text-dwdarkblue'
@@ -201,7 +198,8 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
                                         ? 'text-gray-700 hover:text-dwdarkblue'
                                         : 'text-gray-700 hover:text-dwdarkblue hover:bg-gray-50',
                                     'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                  )}>
+                                  )}
+                                >
                                   <item.icon
                                     className={classNames(
                                       isCurrent(item.href, item.linkType)
@@ -230,7 +228,8 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
         <div
           className={`hidden ${
             sidebarOpen ? 'h-screen lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col' : ''
-          }`}>
+          }`}
+        >
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 py-2">
             <div className="flex h-16 shrink-0 items-center">
@@ -250,7 +249,8 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
                                 ? 'bg-gray-50'
                                 : 'hover:bg-gray-50',
                               'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700'
-                            )}>
+                            )}
+                          >
                             <item.icon
                               className="h-6 w-6 shrink-0 text-gray-400"
                               aria-hidden="true"
@@ -267,7 +267,8 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
                                       ? 'bg-gray-50'
                                       : 'hover:bg-gray-50',
                                     'flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700'
-                                  )}>
+                                  )}
+                                >
                                   <item.icon
                                     className="h-6 w-6 shrink-0 text-gray-400"
                                     aria-hidden="true"
@@ -291,7 +292,8 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
                                             ? 'bg-gray-50'
                                             : 'hover:bg-gray-50',
                                           'block rounded-md py-2 pr-2 pl-9 text-sm leading-6 text-gray-700'
-                                        )}>
+                                        )}
+                                      >
                                         {subItem.name}
                                       </Link>
                                     </li>
@@ -317,7 +319,8 @@ export const AppContainer = (props: { children: React.ReactNode }) => {
             !sidebarOpen
               ? 'lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-8 lg:flex-col justify-end lg:py-2 lg:px-1'
               : ''
-          }`}>
+          }`}
+        >
           <ToggleOpenButton open={sidebarOpen} toggleSidebar={toggleSidebar} />
         </div>
 
